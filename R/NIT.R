@@ -1,12 +1,12 @@
 
 # NIT estimator.
-ksd_MahDist_est <- function(y, s, h, sd, monotonicity=FALSE)
+ksd_MahDist_est <- function(y, s, h, var, monotonicity=FALSE)
 {
   # Input:
   ## y: primary observations
   ## s: auxiliary sequences
   ## h: bandwidth, note that h = 1/lambda
-  ## sd: standard deviation of primary observation based on normal means
+  ## var: standard deviation of primary observation based on normal means
 
   n <- length(y)
   K <- matrix(0, n, n)
@@ -33,7 +33,7 @@ ksd_MahDist_est <- function(y, s, h, sd, monotonicity=FALSE)
 
   ## Monotonicity.
   if (monotonicity) {
-    yest <- y + sd*w
+    yest <- y + var*w
     idxs <- sort.list(y)
     for(i in 2:n)
     {
@@ -79,11 +79,11 @@ bd.est <-function(y, s, var){
 }
 
 
-TFSIKSD_MahDist.MCV.func <- function(y,s, sigma)
+TFSIKSD_MahDist.MCV.func <- function(y,s, var)
 {
-  h <- bd.est(y, s, sigma)
+  h <- bd.est(y, s, var)
 
-  delta <- y + sigma * ksd_MahDist_est(y, s, h, sigma)$w.hat
+  delta <- y + var * ksd_MahDist_est(y, s, h, var)$w.hat
 
   return(delta)
 }
