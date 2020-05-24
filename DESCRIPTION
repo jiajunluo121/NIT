@@ -1,11 +1,18 @@
 Package: NIT
 Type: Package
-Title: What the Package Does (Title Case)
-Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Title: Nonparametric Empirical Bayes Transfer Learning for Large-Scale Estimation with Multivariate Auxiliary Data
+Version: 1.0.0
+Authors@R: c(person("Jiajun","Luo",role=c("aut","cre"),
+    email="jiajunlu@usc.edu"),
+    person("Gourab","Mukherjee",role="aut",email="gourab@usc.edu"),
+    person("Wenguang","Sun",role="aut",email="wenguans@marshall.usc.edu"))
+Maintainer: Jiajun Luo <jiajunlu@usc.edu>
+Description: Provides the NIT procedure for estimating a high dimensional sparse parameter in the presence of multivariate auxiliary data that encode side informationy.
+    For more information, please see the paper.
+License: GPL(>=2)
 Encoding: UTF-8
 LazyData: true
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
