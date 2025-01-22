@@ -1,25 +1,13 @@
-# NIT
+What is NIT?
+======
+
+NIT is a new emperical BAYES estimation procedure that directly incorporates the side information into the estimation procedure. Our approach relies on an improved nonparametric empirical Bayes deconvolution estimator which utilize a nonparametric integrative Tweedie approach.
 
 
-The R-package `NIT` implements the NIT (Nonparametric Integrative Tweedie) procedure that estimates a high-dimensional sparse parameter when along with the primary data we can also gather side information from multiple data sources. 
-See the reference for more details around the NIT procedure.
+How to use this repository?
+----------
 
-Installation
------------
-You can:
+This repository holds the scripts that reproduce the analysis in the paper[1]. In `example.R`, we provide an example about how to use the NIT estimator. `NIT.R` must be available in the current R working directory when using NIT. Meanwhile, the subfolder `simulations` has the R code to reproduce settings 1-4 in  simulation 1 and settings 1-4 in simulation 2 in the paper. In each case, the code `funcs.R` and `NIT.R` must be available in the current R working directory. You will also need `MOSEK 9.3 or higher` and the associated R interface available in the [`Rmosek`](https://docs.mosek.com/latest/rmosek/index.html) package.
 
-1. install the development version of `NIT`
+[1.] EMPIRICAL BAYES ESTIMATION WITH SIDE INFORMATION: A NONPARAMETRIC INTEGRATIVE TWEEDIE APPROACH. Jiajun Luo, Trambak Banerjee, Gourab Mukherjee and Wenguang Sun
 
- ```R
-   devtools::install_github("jiajunluo121/NIT")
-   ```
-
-Usage
--------
-
-See the included vignette [`Demo-NIT`]() for illustrative examples.
-
-References
---------
-[]().                                     
-Luo, J., Mukherjee, G. and Sun, W. 
