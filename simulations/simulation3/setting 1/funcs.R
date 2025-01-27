@@ -1,29 +1,30 @@
 
 
 
-# Oracle case: simulation 2
+# Oracle case: simulation 1
 
-TFOR.simul2.func <- function(y, k, n, var){
-  p <- 0.5 - k/n
-  fy <- p*dnorm(y, 1.5, sqrt(var)) + (1-p)*dnorm(y, 0, sqrt(var))
-  
-  dfy <- p*(1.5-y)/var*dnorm(y, 1.5, sqrt(var)) + (1-p)*(0-y)/var*dnorm(y, 0, sqrt(var))
+TFOR.simul1.func <- function(y, vary, var,se, p){
+
+  fy <- (1-p)*dnorm(y, 0, sqrt(vary)) + p*dnorm(y, se, sqrt(vary))
+  dfy <- (1-p)*(0-y)/vary*dnorm(y, 0, sqrt(vary)) + p*(se-y)/vary*dnorm(y, se, sqrt(vary))
   
   delta <- y + var * dfy/fy
   return(delta)
 }
 
-TFSIOR.simul2.func <- function(y, s, k, n, var){
-  p <- 0.5 - k/n
-  fy <- p*dnorm(y, 1.5, sqrt(var))*dnorm(s, 3.5, sqrt(var)) +
-    (0.5-p)*dnorm(y, 0, sqrt(var))*dnorm(s, 2, sqrt(var)) +
-    0.5*dnorm(y, 0, sqrt(var))*dnorm(s, 0, sqrt(var)) 
+TFSIOR.simul1.func <- function(y, s, vary, vars, var, se, p){
   
+  fys <- (1-p)*dnorm(y, 0, sqrt(vary))*dnorm(s[,1], 0, sqrt(vars))*dnorm(s[,2], 0, sqrt(vars))*
+    dnorm(s[,3], 0, sqrt(vars))*dnorm(s[,4], 0, sqrt(vars)) + 
+    p*dnorm(y, se, sqrt(vary))*dnorm(s[,1], se, sqrt(vars))*dnorm(s[,2], se, sqrt(vars))*
+    dnorm(s[,3], se, sqrt(vars))*dnorm(s[,4], se, sqrt(vars))
   
-  dfy <- p*(1.5-y)/var*dnorm(y, 1.5, sqrt(var))*dnorm(s, 3.5, sqrt(var)) +
-    (0.5-p)*(0-y)/var*dnorm(y, 0, sqrt(var))*dnorm(s, 2, sqrt(var)) +
-    0.5*(0-y)/var*dnorm(y, 0, sqrt(var))*dnorm(s, 0, sqrt(var)) 
-  delta <- y + var * dfy/fy
+  dyfys <- (1-p)*(0-y)*dnorm(y, 0, sqrt(vary))/vary*dnorm(s[,1], 0, sqrt(vars))*dnorm(s[,2], 0, sqrt(vars))*
+    dnorm(s[,3], 0, sqrt(vars))*dnorm(s[,4], 0, sqrt(vars)) + 
+    p*(se-y)*dnorm(y, se, sqrt(vary))/vary*dnorm(s[,1], se, sqrt(vars))*dnorm(s[,2], se, sqrt(vars))*
+    dnorm(s[,3], se, sqrt(vars))*dnorm(s[,4], se, sqrt(vars)) 
+    
+  delta <- y + var * dyfys/fys
   return(delta)
 }
 
@@ -31,7 +32,7 @@ TFKER.func_2 <- function(y, sigma)
 {
   n <- length(y)
   h.grids <- c(0.5, 1, 1.5, 2, 2.5, 3)
-  minRisk <- Inf
+  minRisk <- 2000
   minh <- 0
   K <- 5
   l <- as.integer(n/K)

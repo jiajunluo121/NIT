@@ -1,23 +1,23 @@
 # Simulation of Tweedie's formula with side information
 
 source("funcs.R")
-
 source("NIT.R")
 suppressMessages(suppressWarnings(library(CVXR)))
 library(Rfast)
 library(mvtnorm)
 library(Metrics)
 library(reshape)
-library(ggplot2)
+library(REBayes)
+
+set.seed(5)
 time1 <- Sys.time()
 
-set.seed(10)
 
 nrep <- 100
-sd.vec <- seq(from=0.1, to=1,by=0.1)
+k.vec <- seq(from=50, to=450,by=50)
 n <- 1000
-np <- length(sd.vec)
-
+np <- length(k.vec)
+print(n)
 
 # Mean square error of different methods
 JS.mse <- rep(0, np)
@@ -27,7 +27,6 @@ TFSIOR.mse <- rep(0, np)
 TFSIKSD_MahDist.mse <- rep(0, np)
 EBCF.mse <- rep(0, np)
 NPMLE.mse <- rep(0, np)
-TFSIKSD_one.mse <- rep(0, np)
 
 JS.se <- matrix(rep(0, nrep*np), np, nrep)
 TFOR.se <- matrix(rep(0, nrep*np), np, nrep)
@@ -36,61 +35,46 @@ TFSIOR.se <- matrix(rep(0, nrep*np), np, nrep)
 EBCF.se <- matrix(rep(0, nrep*np), np, nrep)
 NPMLE.se <- matrix(rep(0, nrep*np), np, nrep)
 TFSIKSD_MahDist.se <- matrix(rep(0, nrep*np), np, nrep)
-TFSIKSD_one.se <- matrix(rep(0, nrep*np), np, nrep)
 
 
 for(i in 1:np)
 {
-  sd1 <- 0.5
-  sd2 <- sd.vec[i]
-  se <- 2
+  k <- k.vec[i]
   for (j in 1:nrep)
   { 
-    #print(j)
-    eta <- 2*rbinom(n, 1, 0.5)
-    
-    mu1 <- eta + rnorm(n,0,sd1)
-    mu2 <- eta + rnorm(n,0,sd1)
-    mu3 <- eta + rnorm(n,0,sd1)
-    mu4 <- eta + rnorm(n,0,sd1)
-    mu5 <- eta + rnorm(n,0,sd1)
-    
-    x1 <- mu1 + rnorm(n,0, 1)
-
-    x2 <- mu2 + rnorm(n,0,sd2)
-
-    x3 <- mu3 + rnorm(n,0,sd2)
-
-    x4 <- mu4 + rnorm(n,0,sd2)
-    
-    x5 <- mu5 + rnorm(n,0,sd2)
+    mu1 <- rep(0, n)
+    mu2 <- rep(0, n)
+    mu1[1:k] <- 1
+    be <- k+1
+    mu1[be: 500] <- 2.5
+    mu2[1:500] <- 1
     
     
-    muy <- mu1
+    n1 <- rnorm(n,0,sd=1)
+    n2 <- rnorm(n,0,sd=1)
+    U <- mu1 + n1
+    V <- mu2 + n2
+    muy <- mu1-mu2
+    y <- U-V
+    s <- U+V
     
-    y <- x1
-    s1 <- (x2 +x3+x4+x5)/4
-    s <- cbind(x2, x3,x4, x5)
     
+    TFOR.delta <- TFOR.simul2.func(y, k, n, 2)
     
+    TFKER.delta <- TFKER.func_2(y, 2)
     
+    TFSIOR.delta <- TFSIOR.simul2.func(y, s, k, n, 2)
     
+    EBCF.delta <- EBCF.func(y, s, 2)
     
-    TFOR.delta <- TFOR.simul1.func(y, 1+sd1^2, 1,se, 0.5)
-    
-    TFKER.delta <- TFKER.func_2(y, 1)
-    
-    TFSIOR.delta <- TFSIOR.simul1.func(y, s, 1+sd1^2, sd1^2+sd2^2, 1, se, 0.5)
-    
-    EBCF.delta <- EBCF.func(y, s, 1)
-    
-    NPMLE.density <- GLmix(y, sigma=1)
+    NPMLE.density <- GLmix(y, sigma=sqrt(2))
     NPMLE.delta <- predict(NPMLE.density, y)
     
-    JS.delta <- JS.func(y, 1)
+    JS.delta <- JS.func(y, sqrt(2))
     
-    TFSIKSD_one.delta <- TFSIKSD_MahDist.MCV.func(y,s1, 1) 
-    TFSIKSD_MahDist.delta <- TFSIKSD_MahDist.MCV.func(y,s, 1) 
+    
+    
+    TFSIKSD_MahDist.delta <-TFSIKSD_MahDist.MCV.func(y,s, 2)
     
     
     JS.se[i,j] <- mse(JS.delta, muy)
@@ -100,12 +84,6 @@ for(i in 1:np)
     TFKER.se[i,j] <- mse(TFKER.delta, muy)
     TFSIOR.se[i,j] <- mse(TFSIOR.delta, muy)
     TFSIKSD_MahDist.se[i,j] <- mse(TFSIKSD_MahDist.delta, muy)
-    TFSIKSD_one.se[i,j] <- mse(TFSIKSD_one.delta, muy)
-
-    # print(TFOR.se[i,j])
-    # print(TFSIKSD_one.se[i,j])
-    # print(TFSIOR.se[i,j])
-    # print(TFSIKSD_MahDist.se[i,j])
     
   }
   
@@ -115,24 +93,21 @@ for(i in 1:np)
   TFOR.mse[i] <- mean(TFOR.se[i, ])
   TFKER.mse[i] <- mean(TFKER.se[i, ])
   TFSIOR.mse[i] <- mean(TFSIOR.se[i, ])
-  TFSIKSD_one.mse[i] <- mean(TFSIKSD_one.se[i, ])
   TFSIKSD_MahDist.mse[i] <- mean(TFSIKSD_MahDist.se[i, ])
 }
 
-# (NM.mse, TFOR.mse, TFKER.mse, TFSIOR.mse, TFSIKSD_1dkernel.mse, TFSIKSD_2dkernel.mse, TFSIKSD_MahDist.mse)
-mse<-cbind(JS.mse, EBCF.mse, NPMLE.mse, TFKER.mse, TFSIOR.mse, TFSIKSD_one.mse, TFSIKSD_MahDist.mse)
+
+mse<-cbind(JS.mse, EBCF.mse, NPMLE.mse, TFKER.mse, TFSIOR.mse, TFSIKSD_MahDist.mse)
 time2 <- Sys.time()
 print(Sys.time()-time1)
 
-
-dat = cbind(sd.vec, mse)
+dat = cbind(k.vec, mse)
 df <- as.data.frame(dat)
-names(df) <- c("sd","JS", "EBCF", "NPMLE", "EBT", "NIT.OR","NIT1.DD", "NIT.DD" )
+names(df) <- c("sd","JS", "EBCF", "NPMLE", "EBT", "NIT.OR","NIT.DD" )
 meltR = melt(df, id = "sd")
 
-
-plt <- ggplot(meltR, aes(x=sd, y = value, group = variable, colour = variable)) + geom_point(aes(shape=variable))+scale_shape_manual(values=c(16,17,15,3,7,4, 8))+  geom_line(size=0.4) +theme_bw()
-plt <- plt + ylab("MSE") + xlab(expression(sigma)) 
-plt + theme(legend.title = element_blank(),legend.position ='top',legend.text=element_text(size=9),legend.margin=margin(0,0,-13,0),legend.background = element_blank(),legend.key = element_blank())
+plt <- ggplot(meltR, aes(x=sd, y = value, group = variable, colour = variable)) + geom_point(aes(shape=variable))+  geom_line(size=0.4) +theme_bw()
+plt <- plt + ylab("MSE") + xlab("k") 
+plt + theme(legend.title = element_blank(),legend.position ='top',legend.text=element_text(size=10),legend.margin=margin(0,0,-13,0),legend.background = element_blank(),legend.key = element_blank())
 
 ggsave('figure.png')

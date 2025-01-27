@@ -108,8 +108,8 @@ JS.func <- function(y, sigma){
 
 #
 EBCF.func <- function(y, s, var) {
-  s <- matrix(s)
   n <- length(y)
+  s <- matrix(s,nrow = n)
   est <- rep(0, n)
   kfolds <- createFolds(y, k=5)
 
@@ -120,16 +120,21 @@ EBCF.func <- function(y, s, var) {
     y_test <- y[fold_data]
     s_test <- s[fold_data, ]
     
-    data <- matrix(s_train)
+    data <- matrix(s_train, nrow = length(y_train))
+    #print(dim(s_train))
+    #print(length(y_train))
     bst <- xgboost(data = data, label = y_train, nrounds=30, objective = "reg:squarederror", verbose = 0)
-    test_data <- matrix(s_test)
+    test_data <- matrix(s_test, nrow = length(y_test))
     m_hat <- predict(bst, test_data)
     
     # estinate A
     A_hat <- mse(m_hat, y_test) - var
     A_hat <- pmax(A_hat, 0.0001)
     pr <- A_hat/(var + A_hat )
+  
     t <- pr * y_test + (1 - pr) * m_hat
+    
+    
     est[fold_data] <- t
   }
   
